@@ -1,0 +1,13 @@
+Flask
+Flask-Cors
+Flask-SQLAlchemy
+Flask-Bcrypt
+python-dotenv
+requests
+opencv-python-headless
+numpy
+pandas
+easyocr
+imutils
+sqhash
+marshmallow

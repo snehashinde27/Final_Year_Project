@@ -1,0 +1,82 @@
+from flask import Flask, session
+from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
+from flask_cors import CORS
+import os
+from datetime import datetime
+
+# Initialize extensions
+db = SQLAlchemy()
+bcrypt = Bcrypt()
+
+def create_app():
+    app = Flask(__name__)
+    app.config['SECRET_KEY'] = 'supersecretsahilkey123'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///echallan.db'
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    # Initialize with app
+    db.init_app(app)
+    bcrypt.init_app(app)
+    CORS(app, supports_credentials=True)
+
+    with app.app_context():
+        db.create_all()
+
+    return app
+
+# ==========================================
+# DATABASE MODELS
+# ==========================================
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(50), nullable=False)
+    last_name = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
+    phone_number = db.Column(db.String(15), nullable=False)
+    vehicle_number = db.Column(db.String(20), db.ForeignKey('vehicle.vehicle_number'), nullable=False)
+    role = db.Column(db.String(10), default='user')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Admin(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    full_name = db.Column(db.String(100), nullable=False)
+    username = db.Column(db.String(50), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
+    role = db.Column(db.String(10), default='admin')
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+class Vehicle(db.Model):
+    vehicle_number = db.Column(db.String(20), primary_key=True)
+    owner_name = db.Column(db.String(100), nullable=False)
+    vehicle_model = db.Column(db.String(100), nullable=False)
+    vehicle_type = db.Column(db.String(20), nullable=False) # Car, Bike, Truck
+    contact_number = db.Column(db.String(15), nullable=False)
+    registration_date = db.Column(db.Date, nullable=False)
+
+class Donation(db.Model): # Placeholder for payment logic if needed later
+    id = db.Column(db.Integer, primary_key=True)
+    pass
+
+class Violation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    vehicle_number = db.Column(db.String(20), db.ForeignKey('vehicle.vehicle_number'), nullable=True) # Can remain null if not processed
+    violation_type = db.Column(db.String(50), nullable=False) # default 'Pending Analysis'
+    location = db.Column(db.String(100), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='pending') # pending, processed, paid
+    fine_amount = db.Column(db.Float, default=0.0)
+    image_path = db.Column(db.String(200), nullable=False)
+    video_path = db.Column(db.String(200), nullable=True)
+    cropped_plate_path = db.Column(db.String(200), nullable=True)
+    confidence_score = db.Column(db.Float, default=0.0)
+
+class Camera(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    location = db.Column(db.String(100), nullable=False)
+    ip_address = db.Column(db.String(50), nullable=True)
+    status = db.Column(db.String(20), default='active')
+    last_active = db.Column(db.DateTime, default=datetime.utcnow)
