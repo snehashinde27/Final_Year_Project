@@ -7,7 +7,14 @@ import AdminSignup from './pages/Auth/AdminSignup';
 import AdminDashboard from './pages/Admin/Dashboard';
 import AdminCameras from './pages/Admin/Cameras';
 import AdminViolations from './pages/Admin/Violations';
+import AdminChallans from './pages/Admin/Challans';
+import AdminStatistics from './pages/Admin/Statistics';
+import LiveStream from './pages/Admin/LiveStream';
 import UserDashboard from './pages/User/Dashboard';
+import MyChallans from './pages/User/MyChallans';
+import PaymentHistory from './pages/User/PaymentHistory';
+import Profile from './pages/User/Profile';
+import Support from './pages/User/Support';
 import NotFound from './pages/NotFound';
 import PlaceholderPage from './components/PlaceholderPage';
 import DashboardLayout from './layouts/DashboardLayout';
@@ -31,9 +38,10 @@ function App() {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<AdminDashboard />} />
           <Route path="cameras" element={<AdminCameras />} />
+          <Route path="camera/:id/stream" element={<LiveStream />} />
           <Route path="violations" element={<AdminViolations />} />
-          <Route path="challans" element={<PlaceholderPage title="Challan Management" />} />
-          <Route path="stats" element={<PlaceholderPage title="System Statistics" />} />
+          <Route path="challans" element={<AdminChallans />} />
+          <Route path="stats" element={<AdminStatistics />} />
         </Route>
 
         {/* User Routes */}
@@ -44,10 +52,10 @@ function App() {
         }>
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<UserDashboard />} />
-          <Route path="challans" element={<PlaceholderPage title="My Challans" />} />
-          <Route path="payments" element={<PlaceholderPage title="Payment History" />} />
-          <Route path="profile" element={<PlaceholderPage title="User Profile" />} />
-          <Route path="support" element={<PlaceholderPage title="Support" />} />
+          <Route path="challans" element={<MyChallans />} />
+          <Route path="payments" element={<PaymentHistory />} />
+          <Route path="profile" element={<Profile />} />
+          <Route path="support" element={<Support />} />
         </Route>
 
         {/* Fallback */}

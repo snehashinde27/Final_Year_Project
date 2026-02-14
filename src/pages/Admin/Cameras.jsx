@@ -1,64 +1,118 @@
-import React from 'react';
-import { Camera, MapPin, Activity, Wifi, WifiOff } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Camera, MapPin, Activity, Clock, Play, VideoOff, Settings, AlertCircle, Maximize2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import api from '../../utils/api';
 
 const Cameras = () => {
-    // Mock Camera Data
-    const cameras = Array.from({ length: 8 }, (_, i) => ({
-        id: i + 1,
-        location: `Sector ${10 + i}, Main Junction`,
-        status: i % 3 === 0 ? 'offline' : 'active',
-        lastActive: '2 mins ago'
-    }));
+    const navigate = useNavigate();
+    const [cameras, setCameras] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchCameras();
+    }, []);
+
+    const fetchCameras = async () => {
+        try {
+            const response = await api.get('/api/admin/cameras');
+            setCameras(response.data);
+        } catch (err) {
+            console.error("Failed to fetch cameras");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-        <div>
-            <div className="flex items-center justify-between mb-8">
+        <div className="space-y-8">
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold text-white">Surveillance Cameras</h1>
-                    <p className="text-slate-400 text-sm">Manage and monitor traffic cameras across the city.</p>
+                    <h1 className="text-2xl font-bold text-white">Camera Network</h1>
+                    <p className="text-slate-400 text-sm">Monitor and manage all active traffic surveillance nodes</p>
                 </div>
-                <button className="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
-                    <Activity className="w-4 h-4" /> System Health Check
-                </button>
-            </div>
+                <div className="flex items-center gap-3">
+                    <span className="px-3 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                        {cameras.filter(c => c.status === 'active').length} Nodes Online
+                    </span>
+                    <button className="p-2 bg-slate-800 border border-slate-700 rounded-lg text-slate-400 hover:text-white transition-colors">
+                        <Settings className="w-5 h-5" />
+                    </button>
+                </div>
+            </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {cameras.map((cam) => (
-                    <motion.div
-                        key={cam.id}
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3 }}
-                        className={`bg-slate-800 rounded-xl border ${cam.status === 'active' ? 'border-emerald-500/30' : 'border-red-500/30'} overflow-hidden group hover:shadow-xl transition-all`}
-                    >
-                        <div className="relative h-48 bg-slate-900 flex items-center justify-center overflow-hidden">
-                            {/* Placeholder generic traffic image or static */}
-                            <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-40 group-hover:scale-105 transition-transform duration-500"></div>
+            {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="bg-slate-800 h-64 rounded-3xl animate-pulse" />
+                    ))}
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {cameras.map((cam, index) => (
+                        <motion.div
+                            key={cam.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            whileHover={{ scale: 1.02 }}
+                            className={`group relative overflow-hidden bg-slate-800 rounded-3xl border ${cam.status === 'active' ? 'border-slate-700 hover:border-blue-500/50' : 'border-red-900/40 opacity-75'} shadow-xl transition-all duration-300`}
+                        >
+                            {/* Camera Header */}
+                            <div className="p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`p-2.5 rounded-xl ${cam.status === 'active' ? 'bg-blue-500/10 text-blue-400' : 'bg-red-500/10 text-red-400'}`}>
+                                            <Camera className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <h3 className="font-bold text-white tracking-tight">Node #{cam.id}</h3>
+                                            <p className="text-[10px] text-slate-500 font-mono tracking-tighter uppercase">{cam.ip_address}</p>
+                                        </div>
+                                    </div>
+                                    <span className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2 py-1 rounded-full border ${cam.status === 'active' ? 'bg-emerald-500/5 text-emerald-500 border-emerald-500/20' : 'bg-red-500/5 text-red-500 border-red-500/20'
+                                        }`}>
+                                        <div className={`w-1.5 h-1.5 rounded-full ${cam.status === 'active' ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></div>
+                                        {cam.status}
+                                    </span>
+                                </div>
 
-                            <div className="z-10 bg-slate-900/80 backdrop-blur-sm p-3 rounded-full border border-slate-700">
-                                <Camera className={`w-8 h-8 ${cam.status === 'active' ? 'text-emerald-400' : 'text-slate-500'}`} />
+                                <div className="space-y-3 mb-6">
+                                    <div className="flex items-center gap-2 text-slate-400 text-sm">
+                                        <MapPin className="w-4 h-4 text-slate-600" /> {cam.location}
+                                    </div>
+                                    <div className="flex items-center gap-2 text-slate-400 text-sm font-mono">
+                                        <Clock className="w-4 h-4 text-slate-600" /> {cam.last_active}
+                                    </div>
+                                </div>
+
+                                <button
+                                    disabled={cam.status !== 'active'}
+                                    onClick={() => navigate(`/admin/camera/${cam.id}/stream`)}
+                                    className={`w-full h-12 flex items-center justify-center gap-2 rounded-xl font-bold transition-all ${cam.status === 'active'
+                                            ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-600/20'
+                                            : 'bg-slate-700/50 text-slate-500 cursor-not-allowed border border-slate-700'
+                                        }`}
+                                >
+                                    {cam.status === 'active' ? <><Play className="w-4 h-4 fill-current" /> Initialize Live Stream</> : <><VideoOff className="w-4 h-4" /> Node Offline</>}
+                                </button>
                             </div>
 
-                            <div className={`absolute top-3 right-3 px-2 py-1 rounded text-xs font-bold uppercase tracking-wider flex items-center gap-1 ${cam.status === 'active' ? 'bg-emerald-500 text-white' : 'bg-red-500 text-white'}`}>
-                                {cam.status === 'active' ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3" />}
-                                {cam.status}
-                            </div>
+                            {/* Hover Decorative Element */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl -mr-16 -mt-16 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                        </motion.div>
+                    ))}
+
+                    {/* Add Camera Placeholder if less than 6 */}
+                    {cameras.length < 6 && (
+                        <div className="bg-slate-800/20 border-2 border-dashed border-slate-700/50 rounded-3xl flex flex-col items-center justify-center p-6 text-slate-600 hover:border-blue-500/30 hover:text-blue-500/50 transition-all cursor-pointer">
+                            <AlertCircle className="w-8 h-8 mb-2 opacity-50" />
+                            <p className="font-bold text-sm">Add Survelliance Node</p>
+                            <p className="text-[10px] uppercase font-bold tracking-widest mt-1">Available slots: {6 - cameras.length}</p>
                         </div>
-
-                        <div className="p-5">
-                            <h3 className="text-white font-bold text-lg mb-1">CAM-00{cam.id}</h3>
-                            <div className="flex items-center gap-2 text-slate-400 text-sm mb-4">
-                                <MapPin className="w-4 h-4" /> {cam.location}
-                            </div>
-
-                            <button className={`w-full py-2 rounded-lg font-medium text-sm transition-colors border ${cam.status === 'active' ? 'bg-blue-600 hover:bg-blue-500 text-white border-transparent' : 'bg-transparent text-slate-500 border-slate-700 cursor-not-allowed'}`} disabled={cam.status !== 'active'}>
-                                {cam.status === 'active' ? 'View Live Stream' : 'Offline - Check Connection'}
-                            </button>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
+                    )}
+                </div>
+            )}
         </div>
     );
 };

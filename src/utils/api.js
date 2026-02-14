@@ -12,6 +12,7 @@ api.interceptors.request.use((config) => {
     const user = JSON.parse(localStorage.getItem('challan_user'));
     if (user && user.token) {
         config.headers.Authorization = `Bearer ${user.token}`;
+        config.headers['X-User-Id'] = user.id;
     }
     return config;
 });
