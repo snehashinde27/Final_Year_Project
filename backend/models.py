@@ -63,16 +63,36 @@ class Donation(db.Model): # Placeholder for payment logic if needed later
 
 class Violation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    vehicle_number = db.Column(db.String(20), db.ForeignKey('vehicle.vehicle_number'), nullable=True) # Can remain null if not processed
-    violation_type = db.Column(db.String(50), nullable=False) # default 'Pending Analysis'
+    vehicle_number = db.Column(db.String(20), db.ForeignKey('vehicle.vehicle_number'), nullable=True)
+    violation_type = db.Column(db.String(50), nullable=False)
     location = db.Column(db.String(100), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='pending') # pending, processed, paid
     fine_amount = db.Column(db.Float, default=0.0)
     image_path = db.Column(db.String(200), nullable=False)
-    video_path = db.Column(db.String(200), nullable=True)
+    video_path = db.Column(db.String(200), nullable=True) # 10s video path
     cropped_plate_path = db.Column(db.String(200), nullable=True)
     confidence_score = db.Column(db.Float, default=0.0)
+    payment_date = db.Column(db.DateTime, nullable=True)
+    transaction_id = db.Column(db.String(100), nullable=True)
+
+class Payment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    violation_id = db.Column(db.Integer, db.ForeignKey('violation.id'), nullable=False)
+    amount = db.Column(db.Float, nullable=False)
+    transaction_ref = db.Column(db.String(100), unique=True, nullable=False)
+    payment_date = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='success')
+
+class SupportTicket(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    subject = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, nullable=False)
+    violation_id = db.Column(db.Integer, db.ForeignKey('violation.id'), nullable=True)
+    status = db.Column(db.String(20), default='Open') # Open, Resolved
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 class Camera(db.Model):
     id = db.Column(db.Integer, primary_key=True)
